@@ -45,8 +45,6 @@ TimeDiscretizationConstraint::TimeDiscretizationConstraint (double T, double dt,
     t += dt;
     dts_.push_back(t);
   }
-
-  dts_.push_back(T); // also ensure constraints at very last node/time.
 }
 
 TimeDiscretizationConstraint::TimeDiscretizationConstraint (const VecTimes& times,

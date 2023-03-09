@@ -81,11 +81,15 @@ public:
   NlpFormulation ();
   virtual ~NlpFormulation () = default;
 
-  /**
-   * @brief The ifopt variable sets that will be optimized over.
-   * @param[in/out] builds fully-constructed splines from the variables.
-   */
-  VariablePtrVec GetVariableSets(SplineHolder& spline_holder);
+    /**
+     * @brief The ifopt variable sets that will be optimized over.
+     * @param[in/out] builds fully-constructed splines from the variables.
+     */
+    VariablePtrVec GetVariableSets(
+        SplineHolder& spline_holder,
+        const std::vector<PointsOnFrames::Ptr>& ee_motion,
+        const ValuesOnFrames::Ptr& torques, const ValuesOnFrames::Ptr& com_init,
+        const std::vector<std::vector<Sphere>>& spheres_vec);
 
   /**
    * @brief The ifopt constraints that enforce feasible motions.
@@ -100,7 +104,7 @@ public:
   BaseState initial_base_;
   BaseState final_base_;
   EEPos  initial_ee_W_;
-  RobotModel model_;
+  DynamicModel::Ptr   dynamic_model_;
   HeightMap::Ptr terrain_;
   Parameters params_;
 

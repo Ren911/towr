@@ -169,10 +169,8 @@ Chimney::GetHeight (double x, double y) const
   return z;
 }
 
-double
-Chimney::GetHeightDerivWrtY (double x, double y) const
-{
-  double dzdy = 0.0;
+double Chimney::GetHeightDerivWrtZ(double x, double y) const {
+    double dzdy = 0.0;
 
   if (x_start_<= x && x<= x_end_)
     dzdy = slope_;
@@ -196,10 +194,8 @@ ChimneyLR::GetHeight (double x, double y) const
   return z;
 }
 
-double
-ChimneyLR::GetHeightDerivWrtY (double x, double y) const
-{
-  double dzdy = 0.0;
+double ChimneyLR::GetHeightDerivWrtZ(double x, double y) const {
+    double dzdy = 0.0;
 
   if (x_start_ <= x && x <= x_end1_)
     dzdy = slope_;
