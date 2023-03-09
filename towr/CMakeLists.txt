@@ -26,7 +26,7 @@ add_library(${PROJECT_NAME} SHARED
   src/nodes_variables_phase_based.cc
   src/phase_durations.cc
   # models
-  src/robot_model.cc
+  #src/robot_model.cc
   src/dynamic_model.cc
   src/single_rigid_body_dynamics.cc
   # constraints
@@ -37,7 +37,7 @@ add_library(${PROJECT_NAME} SHARED
   src/force_constraint.cc
   src/total_duration_constraint.cc
   src/dynamic_constraint.cc
-  src/range_of_motion_constraint.cc
+  #src/range_of_motion_constraint.cc
   src/spline_acc_constraint.cc
   src/linear_constraint.cc
   # costs
@@ -55,7 +55,7 @@ add_library(${PROJECT_NAME} SHARED
   src/state.cc
   src/polynomial.cc
   src/spline.cc
-  src/phase_spline.cc
+  #src/phase_spline.cc
   src/node_spline.cc
   src/nodes_observer.cc
   src/spline_holder.cc
@@ -78,7 +78,7 @@ target_include_directories(${PROJECT_NAME}
 #############
 enable_testing()
 # example problem solved with IPOPT
-add_executable(${PROJECT_NAME}-example 
+add_executable(${PROJECT_NAME}-example
   test/hopper_example.cc
 )
 target_link_libraries(${PROJECT_NAME}-example  

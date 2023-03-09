@@ -87,10 +87,14 @@ public:
     Dx deriv_; ///< Derivative (pos,vel) of the node with that ID.
     int dim_;  ///< Dimension (x,y,z) of that derivative.
 
-    NodeValueInfo() = default;
-    NodeValueInfo(int node_id, Dx deriv, int node_dim);
-    int operator==(const NodeValueInfo& right) const;
-  };
+        NodeValueInfo() = default;
+        NodeValueInfo(int node_id, Dx deriv, int node_dim);
+        bool operator==(const NodeValueInfo& right) const;
+        friend bool operator<(const NodeValueInfo& l, const NodeValueInfo& r) {
+            return std::tie(l.id_, l.deriv_, l.dim_) <
+                   std::tie(r.id_, r.deriv_, r.dim_);  // keep the same order
+        };
+    };
 
   /**
    * @brief Node values affected by one specific optimization variable.
@@ -215,12 +219,14 @@ protected:
   std::vector<Node> nodes_;
   int n_dim_;
 
-private:
-  /**
-   * @brief Notifies the subscribed observers that the node values changes.
-   */
-  void UpdateObservers() const;
-  std::vector<ObserverPtr> observers_;
+   private:
+    /**
+     * @brief Notifies the subscribed observers that the node values changes.
+     */
+    void UpdateObservers() const;
+    std::vector<ObserverPtr> observers_;
+    mutable std::map<NodeValueInfo, int> nvi_to_opt_idx_map_;
+    void UpdateNVIMapCache() const;
 
   /**
    * @brief Bounds a specific node variables.

@@ -37,6 +37,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace towr {
 
+struct BaseMotionConstraintInfo {
+    bool is_ballistic;
+    int row_id;  // in constraint vector
+    int n_constraints;
+};
+
 /**
  * @brief Keeps the 6D base motion in a specified range.
  *
@@ -60,12 +66,17 @@ public:
   void UpdateBoundsAtInstance (double t, int k, VecBound&) const override;
   void UpdateJacobianAtInstance(double t, int k, std::string, Jacobian&) const override;
 
-private:
-  NodeSpline::Ptr base_linear_;
-  NodeSpline::Ptr base_angular_;
-
-  VecBound node_bounds_;     ///< same bounds for each discretized node
-  int GetRow (int node, int dim) const;
+   private:
+    NodeSpline::Ptr base_linear_;
+    ValuesOnFrames::Ptr com_init_;    ///< same bounds for each discretized node
+    VecBound node_ballistic_bounds_;  ///< same bounds for each discretized node
+    std::vector<BaseMotionConstraintInfo> constraint_infos_;
+    std::vector<PhaseDurations::Ptr> phase_durations_;
+    std::vector<std::vector<Sphere>> spheres_vec_;
+    int GetRow(int node, int dim) const;
+    const std::vector<Sphere>& GetSpheresAt(double t) const;
+    int BuildConstraintInfos();  // return number of constraints
+    bool IsBallistic(double t) const;
 };
 
 } /* namespace towr */

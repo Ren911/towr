@@ -64,23 +64,27 @@ class DynamicConstraint : public TimeDiscretizationConstraint {
 public:
   using Vector6d = Eigen::Matrix<double, 6, 1>;
 
-  /**
-   * @brief  Construct a Dynamic constraint
-   * @param model  The system dynamics to enforce (e.g. centroidal, LIP, ...)
-   * @param T   The total duration of the optimization.
-   * @param dt  the discretization intervall at which to enforce constraints.
-   * @param spline_holder  A pointer to the current optimization variables.
-   */
-  DynamicConstraint (const DynamicModel::Ptr& model,
-                     double T, double dt,
-                     const SplineHolder& spline_holder);
-  virtual ~DynamicConstraint () = default;
+    /**
+     * @brief  Construct a Dynamic constraint
+     * @param model  The system dynamics to enforce (e.g. centroidal, LIP, ...)
+     * @param T   The total duration of the optimization.
+     * @param dt  the discretization intervall at which to enforce constraints.
+     * @param spline_holder  A pointer to the current optimization variables.
+     */
+    DynamicConstraint(const DynamicModel::Ptr& model, double T, double dt,
+                      double torque_threshold,
+                      const SplineHolder& spline_holder);
+    virtual ~DynamicConstraint() = default;
 
-private:
-  NodeSpline::Ptr base_linear_;   ///< lin. base pos/vel/acc in world frame
-  EulerConverter base_angular_;        ///< angular base state
-  std::vector<NodeSpline::Ptr> ee_forces_; ///< endeffector forces in world frame.
-  std::vector<NodeSpline::Ptr> ee_motion_; ///< endeffector position in world frame.
+   private:
+    NodeSpline::Ptr base_linear_;  ///< lin. base pos/vel/acc in world frame
+    std::vector<NodeSpline::Ptr>
+        ee_forces_;  ///< endeffector forces in world frame.
+    std::vector<PointsOnFrames::Ptr>
+        ee_motion_;  ///< endeffector position in world frame.
+    ValuesOnFrames::Ptr torques_;
+    std::vector<PhaseDurations::Ptr> phase_durations_;
+    ifopt::Bounds torque_bounds_;
 
   mutable DynamicModel::Ptr model_;    ///< the dynamic model (e.g. Centroidal)
 
@@ -101,6 +105,7 @@ private:
   void UpdateConstraintAtInstance(double t, int k, VectorXd& g) const override;
   void UpdateBoundsAtInstance(double t, int k, VecBound& bounds) const override;
   void UpdateJacobianAtInstance(double t, int k, std::string, Jacobian&) const override;
+  bool IsBallistic(double t) const;
 };
 
 } /* namespace towr */

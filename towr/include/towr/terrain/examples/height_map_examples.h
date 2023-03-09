@@ -134,9 +134,9 @@ private:
  * @brief Sample terrain with a tilted vertical wall to cross a gap.
  */
 class Chimney : public HeightMap {
-public:
-  double GetHeight(double x, double y) const override;
-  double GetHeightDerivWrtY(double x, double y) const override;
+   public:
+    double GetHeight(double x, double y) const override;
+    double GetHeightDerivWrtZ(double x, double y) const override;
 
 private:
   const double x_start_ = 1.0;
@@ -151,9 +151,9 @@ private:
  * @brief Sample terrain with two tilted vertical walls to cross a gap.
  */
 class ChimneyLR : public HeightMap {
-public:
-  double GetHeight(double x, double y) const override;
-  double GetHeightDerivWrtY(double x, double y) const override;
+   public:
+    double GetHeight(double x, double y) const override;
+    double GetHeightDerivWrtZ(double x, double y) const override;
 
 private:
   const double x_start_ = 0.5;

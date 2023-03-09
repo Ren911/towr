@@ -159,15 +159,23 @@ private:
   Vector3d GetDerivativeOfNormalizedVectorWrtNonNormalizedIndex(
       const Vector3d& non_normalized, int index) const;
 
-  // first derivatives that must be implemented by the user
-  virtual double GetHeightDerivWrtX(double x, double y) const { return 0.0; };
-  virtual double GetHeightDerivWrtY(double x, double y) const { return 0.0; };
+    // first derivatives that must be implemented by the user
+    virtual double GetHeightDerivWrtX(double x, double y) const { return 0.0; };
+    virtual double GetHeightDerivWrtZ(double x, double y) const { return 0.0; };
 
-  // second derivatives with respect to first letter, then second
-  virtual double GetHeightDerivWrtXX(double x, double y) const { return 0.0; };
-  virtual double GetHeightDerivWrtXY(double x, double y) const { return 0.0; };
-  virtual double GetHeightDerivWrtYX(double x, double y) const { return 0.0; };
-  virtual double GetHeightDerivWrtYY(double x, double y) const { return 0.0; };
+    // second derivatives with respect to first letter, then second
+    virtual double GetHeightDerivWrtXX(double x, double y) const {
+        return 0.0;
+    };
+    virtual double GetHeightDerivWrtXZ(double x, double y) const {
+        return 0.0;
+    };
+    virtual double GetHeightDerivWrtZX(double x, double y) const {
+        return 0.0;
+    };
+    virtual double GetHeightDerivWrtZZ(double x, double y) const {
+        return 0.0;
+    };
 };
 
 

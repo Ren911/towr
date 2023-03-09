@@ -49,117 +49,115 @@ HeightMap::MakeTerrain (TerrainID type)
   }
 }
 
-double
-HeightMap::GetDerivativeOfHeightWrt (Dim2D dim, double x, double y) const
-{
-  switch (dim) {
-    case X: return GetHeightDerivWrtX(x,y);
-    case Y: return GetHeightDerivWrtY(x,y);
-    default: assert(false); // derivative dimension not implemented
-  }
+double HeightMap::GetDerivativeOfHeightWrt(Dim2D dim, double x,
+                                           double z) const {
+    switch (dim) {
+        case X_:
+            return GetHeightDerivWrtX(x, z);
+        case Z_:
+            return GetHeightDerivWrtZ(x, z);
+        default:
+            assert(false);  // derivative dimension not implemented
+    }
+}
+
+HeightMap::Vector3d HeightMap::GetNormalizedBasis(Direction basis, double x,
+                                                  double y) const {
+    return GetBasis(basis, x, y).normalized();
+}
+
+HeightMap::Vector3d HeightMap::GetBasis(Direction basis, double x, double y,
+                                        const DimDerivs& deriv) const {
+    switch (basis) {
+        case Normal:
+            return GetNormal(x, y, deriv);
+        case Tangent1:
+            return GetTangent1(x, y, deriv);
+        case Tangent2:
+            return GetTangent2(x, y, deriv);
+        default:
+            assert(false);  // basis does not exist
+    }
+}
+
+HeightMap::Vector3d HeightMap::GetDerivativeOfNormalizedBasisWrt(
+    Direction basis, Dim2D dim, double x, double y) const {
+    // inner derivative
+    Vector3d dv_wrt_dim = GetBasis(basis, x, y, {dim});
+
+    // outer derivative
+    Vector3d v = GetBasis(basis, x, y, {});
+    Vector3d dn_norm_wrt_n =
+        GetDerivativeOfNormalizedVectorWrtNonNormalizedIndex(v, dim);
+    return dn_norm_wrt_n.cwiseProduct(dv_wrt_dim);
+}
+
+HeightMap::Vector3d HeightMap::GetNormal(double x, double y,
+                                         const DimDerivs& deriv) const {
+    Vector3d n;
+
+    bool basis_requested = deriv.empty();
+
+    for (auto dim : {X_, Z_}) {
+        if (basis_requested)
+            n(dim) = -GetDerivativeOfHeightWrt(dim, x, y);
+        else
+            n(dim) = -GetSecondDerivativeOfHeightWrt(dim, deriv.front(), x, y);
+    }
+
+    n(Y) = basis_requested ? 1.0 : 0.0;
+    return n;
+}
+
+HeightMap::Vector3d HeightMap::GetTangent1(double x, double y,
+                                           const DimDerivs& deriv) const {
+    Vector3d tx;
+
+    bool basis_requested = deriv.empty();
+
+    tx(X) = basis_requested ? 1.0 : 0.0;
+    tx(Y) = basis_requested
+                ? GetDerivativeOfHeightWrt(X_, x, y)
+                : GetSecondDerivativeOfHeightWrt(X_, deriv.front(), x, y);
+    tx(Z) = 0.0;
+
+    return tx;
+}
+
+HeightMap::Vector3d HeightMap::GetTangent2(double x, double y,
+                                           const DimDerivs& deriv) const {
+    Vector3d ty;
+
+    bool basis_requested = deriv.empty();
+
+    ty(X) = 0.0;
+    ty(Y) = basis_requested
+                ? GetDerivativeOfHeightWrt(Z_, x, y)
+                : GetSecondDerivativeOfHeightWrt(Z_, deriv.front(), x, y);
+    ty(Z) = basis_requested ? 1.0 : 0.0;
+    return ty;
 }
 
 HeightMap::Vector3d
-HeightMap::GetNormalizedBasis (Direction basis, double x, double y) const
-{
-  return GetBasis(basis, x, y).normalized();
+HeightMap::GetDerivativeOfNormalizedVectorWrtNonNormalizedIndex(
+    const Vector3d& v, int idx) const {
+    // see notebook or
+    // http://blog.mmacklin.com/2012/05/
+    return 1 / v.squaredNorm() *
+           (v.norm() * Vector3d::Unit(idx) - v(idx) * v.normalized());
 }
 
-HeightMap::Vector3d
-HeightMap::GetBasis (Direction basis, double x, double y,
-                                  const DimDerivs& deriv) const
-{
-  switch (basis) {
-    case Normal:   return GetNormal(x,y, deriv);
-    case Tangent1: return GetTangent1(x,y, deriv);
-    case Tangent2: return GetTangent2(x,y, deriv);
-    default: assert(false); // basis does not exist
-  }
-}
+double HeightMap::GetSecondDerivativeOfHeightWrt(Dim2D dim1, Dim2D dim2,
+                                                 double x, double y) const {
+    if (dim1 == X_) {
+        if (dim2 == X_) return GetHeightDerivWrtXX(x, y);
+        if (dim2 == Z_) return GetHeightDerivWrtXZ(x, y);
+    } else {
+        if (dim2 == X_) return GetHeightDerivWrtZX(x, y);
+        if (dim2 == Z_) return GetHeightDerivWrtZZ(x, y);
+    }
 
-HeightMap::Vector3d
-HeightMap::GetDerivativeOfNormalizedBasisWrt (Direction basis, Dim2D dim,
-                                              double x, double y) const
-{
-  // inner derivative
-  Vector3d dv_wrt_dim = GetBasis(basis, x, y, {dim});
-
-  // outer derivative
-  Vector3d v = GetBasis(basis, x,y, {});
-  Vector3d dn_norm_wrt_n = GetDerivativeOfNormalizedVectorWrtNonNormalizedIndex(v, dim);
-  return dn_norm_wrt_n.cwiseProduct(dv_wrt_dim);
-}
-
-HeightMap::Vector3d
-HeightMap::GetNormal(double x, double y, const DimDerivs& deriv) const
-{
-  Vector3d n;
-
-  bool basis_requested = deriv.empty();
-
-  for (auto dim : {X_,Y_}) {
-    if (basis_requested)
-      n(dim) = -GetDerivativeOfHeightWrt(dim, x, y);
-    else
-      n(dim) = -GetSecondDerivativeOfHeightWrt(dim, deriv.front(), x, y);
-  }
-
-  n(Z) = basis_requested? 1.0 : 0.0;
-
-  return n;
-}
-
-HeightMap::Vector3d
-HeightMap::GetTangent1 (double x, double y, const DimDerivs& deriv) const
-{
-  Vector3d tx;
-
-  bool basis_requested = deriv.empty();
-
-  tx(X) = basis_requested? 1.0 : 0.0;
-  tx(Y) = 0.0;
-  tx(Z) = basis_requested? GetDerivativeOfHeightWrt(X_, x, y)
-                         : GetSecondDerivativeOfHeightWrt(X_, deriv.front(), x, y);
-
-  return tx;
-}
-
-HeightMap::Vector3d
-HeightMap::GetTangent2 (double x, double y, const DimDerivs& deriv) const
-{
-  Vector3d ty;
-
-  bool basis_requested = deriv.empty();
-
-  ty(X) = 0.0;
-  ty(Y) = basis_requested? 1.0 : 0.0;
-  ty(Z) = basis_requested? GetDerivativeOfHeightWrt(Y_, x,y)
-                         : GetSecondDerivativeOfHeightWrt(Y_, deriv.front(), x, y);
-  return ty;
-}
-
-HeightMap::Vector3d
-HeightMap::GetDerivativeOfNormalizedVectorWrtNonNormalizedIndex (
-    const Vector3d& v, int idx) const
-{
-  // see notebook or
-  // http://blog.mmacklin.com/2012/05/
-  return 1/v.squaredNorm()*(v.norm() * Vector3d::Unit(idx) - v(idx)*v.normalized());
-}
-
-double
-HeightMap::GetSecondDerivativeOfHeightWrt (Dim2D dim1, Dim2D dim2,
-                                           double x, double y) const
-{
-  if (dim1 == X_) {
-    if (dim2 == X_) return GetHeightDerivWrtXX(x,y);
-    if (dim2 == Y_) return GetHeightDerivWrtXY(x,y);
-  } else {
-    if (dim2 == X_) return GetHeightDerivWrtYX(x,y);
-    if (dim2 == Y_) return GetHeightDerivWrtYY(x,y);
-  }
-
-  assert(false); // second derivative not specified.
+    assert(false);  // second derivative not specified.
 }
 
 } /* namespace towr */
